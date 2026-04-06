@@ -23,6 +23,7 @@ export namespace Docker {
     readonly isEnabled: () => Effect.Effect<boolean>
     readonly start: (input: { directory: string }) => Effect.Effect<string, never, never>
     readonly stop: (containerID: string) => Effect.Effect<void, never, never>
+    readonly diff: (containerID: string) => Effect.Effect<Change[], never, never>
   }
 
   export class Service extends ServiceMap.Service<Service, Interface>()("@opencode/Docker") {}
@@ -97,10 +98,15 @@ export namespace Docker {
         Effect.catch((err) => Effect.succeed(fail(err))),
       )
 
+      const diff = Effect.fn("Docker.diff")(function* (_containerID: string) {
+        return []
+      })
+
       return Service.of({
         isEnabled,
         start,
         stop,
+        diff,
       })
     }),
   )
@@ -119,5 +125,9 @@ export namespace Docker {
 
   export async function stop(containerID: string) {
     return runPromise((svc) => svc.stop(containerID))
+  }
+
+  export async function diff(containerID: string) {
+    return runPromise((svc) => svc.diff(containerID))
   }
 }
