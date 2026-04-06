@@ -82,6 +82,10 @@ const cli = yargs(args)
     describe: "run without external plugins",
     type: "boolean",
   })
+  .option("docker", {
+    describe: "run session in a Docker container for isolation",
+    type: "boolean",
+  })
   .middleware(async (opts) => {
     if (opts.pure) {
       process.env.OPENCODE_PURE = "1"

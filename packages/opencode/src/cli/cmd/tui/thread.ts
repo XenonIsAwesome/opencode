@@ -99,8 +99,33 @@ export const TuiThreadCommand = cmd({
       .option("agent", {
         type: "string",
         describe: "agent to use",
+      })
+      .option("docker", {
+        type: "boolean",
+        describe: "run session in a Docker container for isolation",
       }),
   handler: async (args) => {
+    const dockerEnabled = args.docker ?? false
+
+    if (dockerEnabled && args.attach) {
+      UI.error("--docker cannot be used with --attach")
+      process.exitCode = 1
+      return
+    }
+
+    if (dockerEnabled) {
+      const { DockerRunner } = await import("@/docker/runner")
+      return await DockerRunner.runTUI({
+        directory: process.cwd(),
+        args: {
+          continue: args.continue,
+          session: args.session,
+          agent: args.agent,
+          model: args.model,
+          fork: args.fork,
+        },
+      })
+    }
     // Keep ENABLE_PROCESSED_INPUT cleared even if other code flips it.
     // (Important when running under `bun run` wrappers on Windows.)
     const unguard = win32InstallCtrlCGuard()
@@ -219,6 +244,7 @@ export const TuiThreadCommand = cmd({
             model: args.model,
             prompt,
             fork: args.fork,
+            docker: args.docker,
           },
         })
       } finally {

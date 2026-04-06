@@ -1037,6 +1037,14 @@ export namespace Config {
             .describe("Timeout in milliseconds for model context protocol (MCP) requests"),
         })
         .optional(),
+      docker: z
+        .object({
+          enabled: z.boolean().optional().describe("Enable Docker sandbox for sessions"),
+          image: z.string().optional().describe("Docker image to use (default: uses built-in opencode image)"),
+          removeAfterExit: z.boolean().optional().describe("Remove container after session ends (default: true)"),
+        })
+        .optional()
+        .describe("Docker sandbox configuration for isolated sessions"),
     })
     .strict()
     .meta({

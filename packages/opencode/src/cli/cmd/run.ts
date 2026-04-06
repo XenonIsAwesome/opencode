@@ -302,6 +302,10 @@ export const RunCommand = cmd({
         describe: "show thinking blocks",
         default: false,
       })
+      .option("docker", {
+        type: "boolean",
+        describe: "run session in a Docker container for isolation",
+      })
   },
   handler: async (args) => {
     let message = [...args.message, ...(args["--"] || [])]
@@ -352,6 +356,29 @@ export const RunCommand = cmd({
     if (args.fork && !args.continue && !args.session) {
       UI.error("--fork requires --continue or --session")
       process.exit(1)
+    }
+
+    if (args.docker && args.attach) {
+      UI.error("--docker cannot be used with --attach")
+      process.exit(1)
+    }
+
+    if (args.docker) {
+      const { DockerRunner } = await import("@/docker/runner")
+      return await DockerRunner.runFromCLI({
+        directory: process.cwd(),
+        message,
+        files,
+        args: {
+          command: args.command,
+          model: args.model,
+          agent: args.agent,
+          variant: args.variant,
+          continue: args.continue,
+          session: args.session,
+          fork: args.fork,
+        },
+      })
     }
 
     const rules: Permission.Ruleset = [
